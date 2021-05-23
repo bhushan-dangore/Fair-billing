@@ -1,20 +1,20 @@
-const { addTime, getTimeDifference } = require("./time");
-
-/*
-  End:
-    1. acvtiveTime and lastStartTime:	Get last start time and record.time and store diff.
-    2. !acvtiveTime and lastStartTime:	Get last start time and record.time and store diff.
-    3. !acvtiveTime and !lastStartTime:	Consider 1st reacord time as start time and record.time as endTime and store diff.
-    4. acvtiveTime and !lastStartTime:	Consider 1st reacord time as start time and record.time take diff and add (diff, activeTime).
-*/
-
+const { addTime, getTimeDifference } = require("./utils/time");
 class Logbook {
   constructor() {
     this.isReportGenerated = false;
     this.records = [];
+
+    // This queue is used to store all the Users with there "Start" event timings array.
     this.queue = {};
+
+    // This variable refers to an object which keeps track of active time of each user.
+    // Thus activeTimeOfUser.user_name will hold the active time of that user in HH:MM:SS format.
     this.userActiveTimes = {};
+
+    // This is an object which keeps track of the user session count.
+    // Thus userActiveSessions.user_name will hold the session count of that user.
     this.userActiveSessions = {};
+
     this.firstRecordTime = null;
     this.lastRecordTime = null;
   }
@@ -41,13 +41,28 @@ class Logbook {
   }
 
   generateLogs() {
+    /*
+      This is the actual algorithm which takes care of calculating the active time for each user in the list.
+      Following are the events and the respective actions taking place for it.
+
+      Start - event:
+        Add event in queue.
+        
+      End - event:
+        1. activeTimeOfUser and lastStartTime:	Get last start time and record.time and store diff.
+        2. !activeTimeOfUser and lastStartTime:	Get last start time and record.time and store diff.
+        3. !activeTimeOfUser and !lastStartTime:	Consider 1st reacord time as start time and record.time as endTime and store diff.
+        4. activeTimeOfUser and !lastStartTime:	Consider 1st reacord time as start time and record.time take diff and add (diff, activeTime).
+    */
     this.records.forEach((record, idx) => {
       if (idx === 0 && record.event === "End") {
-        this.setUserTime(record.name, "00:00:00");
+        this.setUserTime(record.name, "00:00:00"); // Because this is the first record so we can set the active time to zero.
         return;
       }
 
       if (record.event === "Start") {
+        // For any record with "Start" event,
+        // the algorithm pushes it into queue so that it can find the corrosponding "End" event of it.
         this.queue[record.name].push(record.time);
         return;
       }

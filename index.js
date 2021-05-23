@@ -1,6 +1,6 @@
-const { readLogFile } = require("./utils");
 const Logbook = require("./Loogbook");
-const { getTimeInSeconds } = require("./time");
+const { readLogFile } = require("./utils/log-file");
+const { getTimeInSeconds } = require("./utils/time");
 
 const filePath = process.argv.slice(2)[0];
 
